@@ -33,19 +33,19 @@ class Byes:
                 returnvec[vocablist.index(word)] = 1  # 若单词在单词表上出现过，则根据单词表对应的索引，在自定义向量列表的对应索引元素赋1
             else:
                 print(f"the word : {word} is not in my vocabulary!")
-        return returnvec
+        return array(returnvec)
 
     def trainNB0(self, trainmatrix, traincategory):  # 数据集矩阵trainmatrix是已经被通过setofwords2vec被二进制向量化
-        """朴素贝叶斯分类器训练"""
+        """朴素贝叶斯分类器训练函数"""
         numtraindocu = len(trainmatrix)
         numword = len(trainmatrix[0])
         P1busive = sum(traincategory) / float(numtraindocu)  # 通过计算分类标签列表中的1的数目求得类别一的概率，二分类有PB= 1 - PA
         # 构造与词条向量等长的全零向量记录各个词条数量
-        P0num = zeros(numword)
-        P1num = zeros(numword)
+        P0num = ones(numword)
+        P1num = ones(numword)
         # 累加并保存各个类别中出现词条总数
-        P0Denom = 0.0
-        P1Denom = 0.0
+        P0Denom = 2.0   # 初始为2，避免后续因数值过小相乘对结果影响
+        P1Denom = 2.0
         for i in range(numtraindocu):
             if traincategory[i] == 1:
                 P1num += trainmatrix[i]
@@ -54,7 +54,46 @@ class Byes:
                 P0num += trainmatrix[i]
                 P0Denom += sum(trainmatrix[i])
 
-        P1vec = log(P1num / P1Denom)  # log() 返回 x 的自然对数
-        P0vec = log(P0num / P0Denom)
+        P1vec = array(log(P1num / P1Denom))  # log() 返回 x 的自然对数,且后续需要进行数组对应元素相乘，故转化为数组
+        P0vec = array(log(P0num / P0Denom))
 
         return P0vec, P1vec, P1busive
+
+    def classifyNB(self, vec2classify, p0vec, p1vec, pclass1):
+        """进行分类操作"""
+        p1 = sum(vec2classify * p1vec) + log(pclass1)
+        p0 = sum(vec2classify * p0vec) + log(1 - pclass1)
+        if p1 > p0:
+            return "class is 1"
+        else:
+            return "class is 0"
+
+    def get_words(self):
+        """获得一句测试用例文字"""
+        try:
+            words = input("请输入你对斑点狗的评价？(English)")
+        except ValueError:
+            pass
+        else:
+            word_list = words.split(' ')
+            return word_list
+
+    def testingNB(self):
+        """测试分类效果"""
+        listoposts, listclasss = self.postingList, self.classVec
+        myvocablist = self.createVocablist(listoposts)
+        trainmat = []
+        for postindoc in listoposts:
+            trainmat.append(self.setofwords2vec(myvocablist, postindoc))
+        p0v, p1v, p1b = self.trainNB0(trainmat, listclasss)
+        while True:
+            print("（press 'exit' to exit）.")
+            testentry = self.get_words()
+            if testentry[0] == 'exit':
+                break
+            else:
+                words2vec = self.setofwords2vec(myvocablist, testentry)
+                class_result = self.classifyNB(words2vec, p0v, p1v, p1b)
+                print(f"testentry ' classified as: '{class_result}'.")
+
+

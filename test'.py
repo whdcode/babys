@@ -13,3 +13,5 @@ print(my_vocab)
 # 生成文档数据集中第一个文档的2进制词条向量
 first_vocab2Vec = by.setofwords2vec(my_vocab, by.postingList[3])
 print(first_vocab2Vec)
+# 测试分类器效果
+by.testingNB()
