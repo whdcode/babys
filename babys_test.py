@@ -61,12 +61,12 @@ class Byes:
 
     def classifyNB(self, vec2classify, p0vec, p1vec, pclass1):
         """进行分类操作"""
-        p1 = sum(vec2classify * p1vec) + log(pclass1)
+        p1 = sum(vec2classify * p1vec) + log(pclass1)   # vec2classify为需要分类的词条向量对象，已将其2进制向量化
         p0 = sum(vec2classify * p0vec) + log(1 - pclass1)
         if p1 > p0:
-            return "class is 1"
+            return "1"
         else:
-            return "class is 0"
+            return "0"
 
     def get_words(self):
         """获得一句测试用例文字"""
