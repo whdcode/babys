@@ -44,7 +44,7 @@ class Byes:
         P0num = ones(numword)
         P1num = ones(numword)
         # 累加并保存各个类别中出现词条总数
-        P0Denom = 2.0   # 初始为2，避免后续因数值过小相乘对结果影响
+        P0Denom = 2.0  # 初始为2，避免后续因数值过小相乘对结果影响
         P1Denom = 2.0
         for i in range(numtraindocu):
             if traincategory[i] == 1:
@@ -61,7 +61,7 @@ class Byes:
 
     def classifyNB(self, vec2classify, p0vec, p1vec, pclass1):
         """进行分类操作"""
-        p1 = sum(vec2classify * p1vec) + log(pclass1)   # vec2classify为需要分类的词条向量对象，已将其2进制向量化
+        p1 = sum(vec2classify * p1vec) + log(pclass1)  # vec2classify为需要分类的词条向量对象，已将其2进制向量化
         p0 = sum(vec2classify * p0vec) + log(1 - pclass1)
         if p1 > p0:
             return "1"
@@ -96,4 +96,13 @@ class Byes:
                 class_result = self.classifyNB(words2vec, p0v, p1v, p1b)
                 print(f"testentry ' classified as: '{class_result}'.")
 
+    # 朴素贝叶斯词袋模型
+    def bagofword2vecmn(self, vocablist, inputset):
+        """基于词袋模型的向量化"""
+        returnvec = [0] * len(vocablist)
+        for word in inputset:
+            if word in vocablist:
+                returnvec[vocablist.index(word)] += 1
+        return returnvec
 
+    
