@@ -2,7 +2,10 @@
 date:2022年9月18日16点37分
 name:朴素贝叶斯（基于贝努利模型）
 """
+import random
+
 from numpy import *
+import re
 
 
 class Byes:
@@ -105,4 +108,66 @@ class Byes:
                 returnvec[vocablist.index(word)] += 1
         return returnvec
 
-    
+    def textparse(self, bigstring):
+        """负责将一整封邮件中的字符串拆分为字符列表，且除去长度小于等于2的字符"""
+        listoftokens = re.split(r'\W+', bigstring)
+        listoftokens_result = []
+        for tok in listoftokens:
+            if len(tok) > 2:
+                listoftokens_result.append(tok)
+        return listoftokens_result
+
+    def solve_text(self):
+        """导入并且解析文件夹"""
+        doclist = []  # 存放文本数据集列表
+        classlist = []  # 类别标签列表
+        fulltext = []  # 存放所有单词，包含重复
+
+        for i in range(1, 26):
+            with open(f'email/ham/{i}.txt', encoding='ISO-8859-15') as f:
+                file_text = f.read()
+                word_list = self.textparse(file_text)
+                doclist.append(word_list)
+                fulltext.extend(word_list)
+                classlist.append(1)  # 1表示垃圾邮件，0表示正常邮件
+            with open(f'email/spam/{i}.txt', encoding='ISO-8859-15') as f:
+                file_text = f.read()
+                word_list = self.textparse(file_text)
+                doclist.append(word_list)
+                fulltext.extend(word_list)
+                classlist.append(0)  # 1表示垃圾邮件，0表示正常邮件
+
+        vocablist = self.createVocablist(doclist)
+        return vocablist, doclist, classlist, file_text
+
+    def random_to_get_trainset(self):
+        """随机构建训练集"""
+        trainingset = list(range(50))
+        testset = []
+        for i in range(10):
+            randindex = int(random.uniform(0, len(trainingset)))
+            testset.append(trainingset[randindex])
+            del (trainingset[randindex])
+        return trainingset, testset
+
+    def trainset2vec_and_testclassify(self, vocablist, doclist,
+                                      classlist, trainset, testset):
+        """对数据集进行向量化"""
+        trainmat = []
+        trainclass = []
+        testmat = []
+        true_class = []
+        for docindex in trainset:
+            trainmat.append(self.setofwords2vec(vocablist, doclist[docindex]))
+            trainclass.append(classlist[docindex])
+        for docindex in testset:
+            testmat.append(self.setofwords2vec(vocablist, doclist[docindex]))
+            true_class.append(classlist[docindex])
+        errorcount = 0  # 对测试中分类错误进行计数
+        p0v, p1v, pspm = self.trainNB0(array(trainmat), array(trainclass))
+        for testindex in testset:
+            if self.classifyNB(array(doclist[testindex]), p0v, p1v, pspm) != true_class[testindex]:
+                errorcount += 1
+
+        error_rate = errorcount / float(len(testmat))
+        print(f"error rate is {error_rate}")
